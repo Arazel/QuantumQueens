@@ -1,0 +1,343 @@
+// This is a basic algorithm to resolve 4 queens 99.56%
+// Grover Algorithm
+
+VectorSize 18
+
+
+Queen0 = 0
+Queen01= 1
+Queen1 = 2
+Queen11= 3
+Queen2 = 4
+Queen21= 5
+Queen3 = 6
+Queen31= 7
+
+ControlBit = 8
+
+r0 = 9
+r1 = 10
+r2 = 11
+r3 = 12
+r4 = 13
+r5 = 14
+r6 = 15
+r7 = 16
+r8 = 17
+//r9 = 18
+//r10 = 19
+
+proc HQueens
+Hadamard Queen0
+Hadamard Queen01
+Hadamard Queen1
+Hadamard Queen11
+Hadamard Queen2
+Hadamard Queen21
+Hadamard Queen3
+Hadamard Queen31
+endproc
+
+proc XQueens
+SigmaX Queen0
+SigmaX Queen01
+SigmaX Queen1
+SigmaX Queen11
+SigmaX Queen2
+SigmaX Queen21
+SigmaX Queen3
+SigmaX Queen31
+endproc
+
+proc PrepareControlBit ctrl
+SigmaX ctrl
+Hadamard ctrl
+endproc
+
+proc FirstDiagonalIsEmpty q, rOut
+reg0 = rOut + 1
+reg1 = rOut + 2
+reg2 = rOut + 3
+D00 = q
+D01 = q+1
+D10 = q+2
+D11 = q+3
+
+Toffoli D00, D01, reg0
+
+SigmaX D00
+SigmaX D10
+Toffoli D00, D10, reg1
+SigmaX D10
+
+SigmaX D01
+Toffoli D01, D10, reg2
+
+Toffoli reg2, D11, rOut
+
+Toffoli D01, reg1, rOut
+
+SigmaX D11
+SigmaX reg0
+Toffoli D11, reg0, rOut
+
+SigmaX reg1
+Toffoli reg1, D11, rOut
+
+endproc
+
+proc InvFirstDiagonalIsEmpty q, rOut
+reg0 = rOut + 1
+reg1 = rOut + 2
+reg2 = rOut + 3
+D00 = q
+D01 = q+1
+D10 = q+2
+D11 = q+3
+
+Toffoli reg1, D11, rOut
+SigmaX reg1
+
+Toffoli D11, reg0, rOut
+SigmaX reg0
+SigmaX D11
+
+Toffoli D01, reg1, rOut
+
+Toffoli reg2, D11, rOut
+
+Toffoli D01, D10, reg2
+SigmaX D01
+
+SigmaX D10
+Toffoli D00, D10, reg1
+SigmaX D10
+SigmaX D00
+
+Toffoli D00, D01, reg0
+
+endproc
+
+proc QueenCmp qu0, qu1, temp
+//return 1 if queens are on different line
+CNot qu0, qu1
+CNot qu0+1, qu1+1
+SigmaX qu1
+SigmaX qu1+1
+Toffoli qu1, qu1+1, temp
+SigmaX temp
+SigmaX qu1+1
+SigmaX qu1
+CNot qu0+1, qu1+1
+CNot qu0, qu1
+endproc
+
+proc InvQueenCmp qu0, qu1, temp
+//return 1 if queens are on different line
+CNot qu0, qu1
+CNot qu0+1, qu1+1
+SigmaX qu1
+SigmaX qu1+1
+SigmaX temp
+Toffoli qu1, qu1+1, temp
+SigmaX qu1+1
+SigmaX qu1
+CNot qu0+1, qu1+1
+CNot qu0, qu1
+endproc
+
+proc CheckLines rOut
+
+QueenCmp Queen0, Queen1, r0
+QueenCmp Queen1, Queen2, r1
+Toffoli r0, r1, r2
+InvQueenCmp Queen1, Queen2, r1
+InvQueenCmp Queen0, Queen1, r0
+
+QueenCmp Queen0, Queen2, r0
+QueenCmp Queen0, Queen3, r1
+Toffoli r0, r1, r3
+InvQueenCmp Queen0, Queen3, r1
+InvQueenCmp Queen0, Queen2, r0
+
+QueenCmp Queen1, Queen3, r0
+QueenCmp Queen2, Queen3, r1
+Toffoli r0, r1, r4
+InvQueenCmp Queen2, Queen3, r1
+InvQueenCmp Queen1, Queen3, r0
+
+Toffoli r2, r3, r5
+Toffoli r4, r5, rOut
+
+endproc
+
+proc InvCheckLines rOut
+
+Toffoli r4, r5, rOut
+Toffoli r2, r3, r5
+
+InvQueenCmp Queen1, Queen3, r0
+InvQueenCmp Queen2, Queen3, r1
+Toffoli r0, r1, r4
+QueenCmp Queen2, Queen3, r1
+QueenCmp Queen1, Queen3, r0
+
+InvQueenCmp Queen0, Queen2, r0
+InvQueenCmp Queen0, Queen3, r1
+Toffoli r0, r1, r3
+QueenCmp Queen0, Queen3, r1
+QueenCmp Queen0, Queen2, r0
+
+InvQueenCmp Queen0, Queen1, r0
+InvQueenCmp Queen1, Queen2, r1
+Toffoli r0, r1, r2
+QueenCmp Queen1, Queen2, r1
+QueenCmp Queen0, Queen1, r0
+
+endproc
+
+proc CheckDiagonals rOut
+reg0 = r0
+reg1 = r4
+reg2 = r5
+reg3 = r6
+
+FirstDiagonalIsEmpty Queen0, reg0
+CNot reg0, reg1
+InvFirstDiagonalIsEmpty Queen0, reg0
+
+FirstDiagonalIsEmpty Queen1, reg0
+CNot reg0, reg2
+InvFirstDiagonalIsEmpty Queen1, reg0
+
+FirstDiagonalIsEmpty Queen2, reg0
+Toffoli reg0, reg2, reg3
+Toffoli reg3, reg1, rOut
+Toffoli reg0, reg2, reg3
+InvFirstDiagonalIsEmpty Queen2, reg0
+
+FirstDiagonalIsEmpty Queen1, reg0
+CNot reg0, reg2
+InvFirstDiagonalIsEmpty Queen1, reg0
+
+FirstDiagonalIsEmpty Queen0, reg0
+CNot reg0, reg1
+InvFirstDiagonalIsEmpty Queen0, reg0
+endproc
+
+proc InvCheckDiagonals rOut
+reg0 = r0
+reg1 = r4
+reg2 = r5
+reg3 = r6
+
+FirstDiagonalIsEmpty Queen0, reg0
+CNot reg0, reg1
+InvFirstDiagonalIsEmpty Queen0, reg0
+
+FirstDiagonalIsEmpty Queen1, reg0
+CNot reg0, reg2
+InvFirstDiagonalIsEmpty Queen1, reg0
+
+FirstDiagonalIsEmpty Queen2, reg0
+Toffoli reg0, reg2, reg3
+Toffoli reg3, reg1, rOut
+Toffoli reg0, reg2, reg3
+InvFirstDiagonalIsEmpty Queen2, reg0
+
+FirstDiagonalIsEmpty Queen1, reg0
+CNot reg0, reg2
+InvFirstDiagonalIsEmpty Queen1, reg0
+
+FirstDiagonalIsEmpty Queen0, reg0
+CNot reg0, reg1
+InvFirstDiagonalIsEmpty Queen0, reg0
+endproc
+
+
+proc Oracle
+
+CheckDiagonals r7
+CNot r7, r8
+InvCheckDiagonals r7
+
+CheckLines r6
+Toffoli r8, r6, ControlBit
+InvCheckLines r6
+
+CheckDiagonals r7
+CNot r7, r8
+InvCheckDiagonals r7
+
+endproc
+
+proc Inversion
+HQueens
+XQueens
+
+Toffoli Queen0, Queen01, r0
+Toffoli Queen1, r0, r1
+Toffoli Queen11, r1, r2
+Toffoli Queen2, r2, r3
+Toffoli Queen21, r3, r4
+Toffoli Queen3, r4, r5
+Toffoli Queen31, r5, r6
+
+CNot r6, ControlBit
+
+Toffoli Queen31, r5, r6
+Toffoli Queen3, r4, r5
+Toffoli Queen21, r3, r4
+Toffoli Queen2, r2, r3
+Toffoli Queen11, r1, r2
+Toffoli Queen1, r0, r1
+Toffoli Queen0, Queen01, r0
+
+XQueens
+HQueens
+endproc
+
+
+HQueens
+PrepareControlBit ControlBit
+
+
+for i = 0; i < 8; i++
+
+Oracle
+
+Inversion
+
+endfor
+
+SigmaZ ControlBit
+Hadamard ControlBit
+
+
+Measure
+
+returnVal = measured_value % 255
+
+Queens = [returnVal % 4, (returnVal >> 2) % 4, (returnVal >> 4) % 4, (returnVal >> 6) % 4]
+
+
+retString = "<h2>"
+for line = 3; line > -1; line --
+retString = retString + "<h2>"
+for i = 0; i< 4; i++
+if (Queens[i] == line)
+retString = retString +"|x "
+else
+retString = retString +"| . "
+endif
+endfor
+retString = retString + " |"
+endfor
+
+
+//retString = retString+"<h2>Q0: " + Queens[0]
+//retString = retString + "<h2>Q1: " + Queens[1]
+//retString = retString + "<h2>Q2: " + Queens[2]
+//retString = retString + "<h2>Q3: " + Queens[3]
+
+Display retString

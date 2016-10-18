@@ -24,7 +24,9 @@
 
 /* Begin PBXFileReference section */
 		FF8FA0A21DB3DC03008DF79A /* quantumQueens */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quantumQueens; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF8FA0A51DB3DC03008DF79A /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		FF8FA0A51DB3DC03008DF79A /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		FF8FA0AE1DB3DDD6008DF79A /* quantum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = quantum.h; path = "../libquantum-1.1.1/quantum.h"; sourceTree = "<group>"; };
+		FF8FA0AF1DB3E75C008DF79A /* starting QScript code */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "starting QScript code"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +43,7 @@
 		FF8FA0991DB3DC03008DF79A = {
 			isa = PBXGroup;
 			children = (
+				FF8FA0AE1DB3DDD6008DF79A /* quantum.h */,
 				FF8FA0A41DB3DC03008DF79A /* quantumQueens */,
 				FF8FA0A31DB3DC03008DF79A /* Products */,
 			);
@@ -58,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				FF8FA0A51DB3DC03008DF79A /* main.c */,
+				FF8FA0AF1DB3E75C008DF79A /* starting QScript code */,
 			);
 			path = quantumQueens;
 			sourceTree = "<group>";
@@ -208,6 +212,8 @@
 		FF8FA0AA1DB3DC03008DF79A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				OTHER_LDFLAGS = "-lquantum";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -215,6 +221,8 @@
 		FF8FA0AB1DB3DC03008DF79A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				OTHER_LDFLAGS = "-lquantum";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -238,6 +246,7 @@
 				FF8FA0AB1DB3DC03008DF79A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

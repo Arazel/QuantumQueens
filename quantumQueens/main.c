@@ -6,12 +6,14 @@
 //
 //
 
+
 #include "quantum.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
 
+#define FAST_RESULT 1 //fast result, do not use grover algorithm till the end, read directly the max probability after 1 passes (gain for 5 queens : 2m40 -> 2s40)
 
 int queen0[3] = {0,1,2};
 int queen1[3] = {3,4,5};
@@ -685,38 +687,26 @@ void Oracle(quantum_reg *quReg)
 
 void Inversion(quantum_reg *quReg)
 {
+    int i = 0;
+    
     for (int i = 0; i< queenWidth; i++)
         quantum_hadamard(i, quReg);
     for (int i = 0; i< queenWidth; i++)
         quantum_sigma_x(i, quReg);
     
-    quantum_toffoli(queen0[0], queen0[1], quRAM[0], quReg);
-    quantum_toffoli(queen0[2], quRAM[0], quRAM[1], quReg);
-    quantum_toffoli(queen1[0], quRAM[1], quRAM[2], quReg);
-    quantum_toffoli(queen1[1], quRAM[2], quRAM[3], quReg);
-    quantum_toffoli(queen1[2], quRAM[3], quRAM[4], quReg);
-    quantum_toffoli(queen2[0], quRAM[4], quRAM[5], quReg);
-    quantum_toffoli(queen2[1], quRAM[5], quRAM[6], quReg);
-    quantum_toffoli(queen2[2], quRAM[6], quRAM[7], quReg);
-    quantum_toffoli(queen3[0], quRAM[7], quRAM[8], quReg);
-    quantum_toffoli(queen3[1], quRAM[8], quRAM[9], quReg);
-    quantum_toffoli(queen3[2], quRAM[9], quRAM[10], quReg);
+    quantum_sigma_x(quRAM[0], quReg);
     
-    quantum_cnot(quRAM[10], quControlBit, quReg);
-    
-    quantum_toffoli(queen3[2], quRAM[9], quRAM[10], quReg);
-    quantum_toffoli(queen3[1], quRAM[8], quRAM[9], quReg);
-    quantum_toffoli(queen3[0], quRAM[7], quRAM[8], quReg);
-    quantum_toffoli(queen2[2], quRAM[6], quRAM[7], quReg);
-    quantum_toffoli(queen2[1], quRAM[5], quRAM[6], quReg);
-    quantum_toffoli(queen2[0], quRAM[4], quRAM[5], quReg);
-    quantum_toffoli(queen1[2], quRAM[3], quRAM[4], quReg);
-    quantum_toffoli(queen1[1], quRAM[2], quRAM[3], quReg);
-    quantum_toffoli(queen1[0], quRAM[1], quRAM[2], quReg);
-    quantum_toffoli(queen0[2], quRAM[0], quRAM[1], quReg);
-    quantum_toffoli(queen0[0], queen0[1], quRAM[0], quReg);
-    
+    for (i = 0; i< queenWidth; i++) {
+        quantum_toffoli(queen0[0] + i, quRAM[i], quRAM[i+1], quReg);
+    }
 
+    quantum_cnot(quRAM[i], quControlBit, quReg);
+    
+    for (i = queenWidth - 1; i >=0; i--) {
+        quantum_toffoli(queen0[0] + i, quRAM[i], quRAM[i+1], quReg);
+    }
+    
+    quantum_sigma_x(quRAM[0], quReg);
     
     for (int i = 0; i< queenWidth; i++)
         quantum_sigma_x(i, quReg);
@@ -724,6 +714,45 @@ void Inversion(quantum_reg *quReg)
         quantum_hadamard(i, quReg);
     
 }
+
+void printQueensFromState(unsigned long long state) {
+    
+    
+    int Queens[5] = {state % 8, (state >> 3) % 8, (state >> 6) % 8, (state >> 9) % 8, (state >> 12) % 8};
+    
+    //printf("D0 : %d\nD1 : %d\nD2 : %d\nD3 : %d\nD4 : %d\n", Queens[0], Queens[1], Queens[2], Queens[3], Queens[4]);
+    
+    for (int i = 0; i< 5; i++) {
+        printf("\n|");
+        for (int j = 0; j<5; j++) {
+            if (Queens[j] == 4-i) {
+                printf("x|");
+            }
+            else {
+                printf(" |");
+            }
+        }
+    }
+    printf("\n");
+}
+unsigned long long quantum_max_proba_state (quantum_reg quReg) {
+    
+    double maxProba = 0.0;
+    int maxProbaIndex=0;
+    for (int index=0; index < quReg.size; index++) {
+        double proba = 0.0;
+        proba = quantum_prob(quReg.amplitude[index])*2.0;
+        if (proba > maxProba) {
+            maxProbaIndex = index;
+            maxProba = proba;
+        }
+    }
+    printf("cheating DeltaP = %.15f\n", maxProba - quantum_prob(quReg.amplitude[0]*2.0));
+    
+    return quReg.state[maxProbaIndex];
+
+}
+
 
 int main(int argc, const char * argv[])
 {
@@ -742,8 +771,12 @@ int main(int argc, const char * argv[])
     //initialize control bit
     quantum_sigma_x(quControlBit, &quReg);
     quantum_hadamard(quControlBit, &quReg);
-    
-    for (int i = 0; i< 34; i++) {
+#ifdef FAST_RESULT
+    int order = 1;
+#else
+    int order = 43;
+#endif
+    for (int i = 0; i< order; i++) {
         Oracle(&quReg);
         Inversion(&quReg);
     }
@@ -751,27 +784,20 @@ int main(int argc, const char * argv[])
     quantum_sigma_z(quControlBit, &quReg);
     quantum_hadamard(quControlBit, &quReg);
     
-    unsigned long long returnVal = quantum_measure(quReg);
+    unsigned long long returnVal = 0;
+    
+#ifdef FAST_RESULT
+    returnVal = quantum_max_proba_state(quReg);
+
+#else
+    returnVal = quantum_measure(quReg);
+#endif
     
     quantum_delete_qureg(&quReg);
     
     
-    int Queens[5] = {returnVal % 8, (returnVal >> 3) % 8, (returnVal >> 6) % 8, (returnVal >> 9) % 8, (returnVal >> 12) % 8};
-    
-    printf("D0 : %d\nD1 : %d\nD2 : %d\nD3 : %d\nD4 : %d\n", Queens[0], Queens[1], Queens[2], Queens[3], Queens[4]);
-    
-    for (int i = 0; i< 5; i++) {
-        printf("\n|");
-        for (int j = 0; j<5; j++) {
-            if (Queens[j] == 4-i) {
-                printf("x|");
-            }
-            else {
-                printf(" |");
-            }
-        }
-    }
-    printf("\n");
+    printQueensFromState(returnVal);
     
     return 0;
 }
+

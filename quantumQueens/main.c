@@ -24,8 +24,9 @@ int queen7[3] = {21,22,23};
 */
 
 const int queenWidth = 15;
-
 const int nb_queens =  queenWidth/ 3;
+const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
+
 
 const int quControlBit = 15;
 
@@ -496,37 +497,30 @@ void CheckDiagonals(int OutReg, quantum_reg *quReg)
 
 void Check2ndDiagonal(int OutReg, quantum_reg *quReg)
 {
+    int i = 0;
     int reg0 = OutReg+1;
     int reg1 = OutReg+16;
-    int reg2 = OutReg+17;
     
+    quantum_sigma_x(reg1, quReg);
+    for (i = 0; i < nb_queens-2; i++) {
+        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
+        quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
+        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
+    }
+    quantum_cnot(reg1+i, OutReg, quReg);
     
-    QueensAreNotInDiagonal(queen0, queen2, reg0, 2, quReg);
-    quantum_cnot(reg0, reg1, quReg);
-    QueensAreNotInDiagonal(queen0, queen2, reg0, 2, quReg);
-    
-    QueensAreNotInDiagonal(queen1, queen3, reg0, 2, quReg);
-    quantum_toffoli(reg0, reg1, reg2, quReg);
-    QueensAreNotInDiagonal(queen1, queen3, reg0, 2, quReg);
-    
-    QueensAreNotInDiagonal(queen2, queen4, reg0, 2, quReg);
-    quantum_toffoli(reg0, reg2, OutReg, quReg);                   //MAIN Symetrie
-    QueensAreNotInDiagonal(queen2, queen4, reg0, 2, quReg);
-    
-    QueensAreNotInDiagonal(queen1, queen3, reg0, 2, quReg);
-    quantum_toffoli(reg0, reg1, reg2, quReg);
-    QueensAreNotInDiagonal(queen1, queen3, reg0, 2, quReg);
-    
-    QueensAreNotInDiagonal(queen0, queen2, reg0, 2, quReg);
-    quantum_cnot(reg0, reg1, quReg);
-    QueensAreNotInDiagonal(queen0, queen2, reg0, 2, quReg);
+    for (i = nb_queens-3; i >=0; i--) {
+        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
+        quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
+        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
+    }
+    quantum_sigma_x(reg1, quReg);
     
 }
 
 void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
 {
     //max depth = nb queens + 11
-    const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
     
     int reg0 = OutReg + 1;
     int reg1 = OutReg + 11;
@@ -562,7 +556,7 @@ void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
 void CheckLines(int OutReg, quantum_reg *quReg)
 {
     //depth = nb_queens + 17
-    const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
+    
     int i;
     int reg0 = OutReg+1;
     int reg1 = OutReg+17;
@@ -589,7 +583,7 @@ void CheckLines(int OutReg, quantum_reg *quReg)
 }
 
 void CheckLimit(int OutReg, quantum_reg *quReg) {
-    const int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    
     int i;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;

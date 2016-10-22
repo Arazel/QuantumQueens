@@ -27,9 +27,9 @@ int queenWidth = 15;
 
 int quControlBit = 15;
 
-int quRAM[31] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46};
+int quRAM[32] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
 
-int totalWidth = 47;
+int totalWidth = 48;
 
 
 
@@ -589,31 +589,97 @@ void CheckLines(int OutReg, quantum_reg *quReg)
 
 }
 
+void CheckLimit(int OutReg, quantum_reg *quReg) {
+    int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    int i;
+    int reg0 = OutReg+1;
+    int reg1 = OutReg+2;
+    int reg2 = OutReg+3;
+    
+    
+    quantum_sigma_x(reg2, quReg);
+        //quantum_print_qureg(*quReg);
+    
+    for (i = 0; i< 5; i++) {
+        quantum_sigma_x(queens[i][1], quReg);
+        quantum_sigma_x(queens[i][0], quReg);
+        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+        quantum_sigma_x(queens[i][2], quReg);
+        quantum_cnot(queens[i][2], reg1, quReg);
+        quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
+        quantum_cnot(queens[i][2], reg1, quReg);
+        quantum_sigma_x(queens[i][2], quReg);
+        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+        quantum_sigma_x(queens[i][0], quReg);
+        quantum_sigma_x(queens[i][1], quReg);
+        
+    }
+    
+    quantum_cnot(reg2+i, OutReg, quReg);
+    
+    //quantum_print_qureg(*quReg);
+    
+    for (i = 5-1; i>=0; i--) {
+        quantum_sigma_x(queens[i][1], quReg);
+        quantum_sigma_x(queens[i][0], quReg);
+        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+        quantum_sigma_x(queens[i][2], quReg);
+        quantum_cnot(queens[i][2], reg1, quReg);
+        quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
+        quantum_cnot(queens[i][2], reg1, quReg);
+        quantum_sigma_x(queens[i][2], quReg);
+        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+        quantum_sigma_x(queens[i][0], quReg);
+        quantum_sigma_x(queens[i][1], quReg);
+        
+    }
+    
+    quantum_sigma_x(reg2, quReg);
+    
+    //quantum_print_qureg(*quReg);
+}
+
 void Oracle(quantum_reg *quReg)
 {
+  
+    
+    //quantum_print_qureg(*quReg);
     
     CheckLines(quRAM[0], quReg);
-    quantum_cnot(quRAM[0], quRAM[28], quReg);
+    quantum_cnot(quRAM[0], quRAM[29], quReg);
     CheckLines(quRAM[0], quReg);
-
     
     CheckDiagonals(quRAM[0], quReg);
-    quantum_toffoli(quRAM[28], quRAM[0], quRAM[29], quReg);
+    quantum_toffoli(quRAM[29], quRAM[0], quRAM[30], quReg);
     CheckDiagonals(quRAM[0], quReg);
-    
     
     Check2ndDiagonal(quRAM[0], quReg);
-    quantum_toffoli(quRAM[0], quRAM[29], quControlBit, quReg);
+    quantum_toffoli(quRAM[0], quRAM[30], quRAM[31], quReg);
+    Check2ndDiagonal(quRAM[0], quReg);
+    
+    CheckLimit(quRAM[0], quReg);
+    quantum_toffoli(quRAM[0], quRAM[31], quControlBit, quReg);
+    CheckLimit(quRAM[0], quReg);
+    
+    Check2ndDiagonal(quRAM[0], quReg);
+    quantum_toffoli(quRAM[0], quRAM[30], quRAM[31], quReg);
     Check2ndDiagonal(quRAM[0], quReg);
     
     CheckDiagonals(quRAM[0], quReg);
-    quantum_toffoli(quRAM[28], quRAM[0], quRAM[29], quReg);
+    quantum_toffoli(quRAM[29], quRAM[0], quRAM[30], quReg);
     CheckDiagonals(quRAM[0], quReg);
 
     
     CheckLines(quRAM[0], quReg);
-    quantum_cnot(quRAM[0], quRAM[28], quReg);
+    quantum_cnot(quRAM[0], quRAM[29], quReg);
     CheckLines(quRAM[0], quReg);
+    
+            //quantum_print_qureg(*quReg);
+    
     
 }
 
@@ -635,7 +701,6 @@ void Inversion(quantum_reg *quReg)
     quantum_toffoli(queen3[0], quRAM[7], quRAM[8], quReg);
     quantum_toffoli(queen3[1], quRAM[8], quRAM[9], quReg);
     quantum_toffoli(queen3[2], quRAM[9], quRAM[10], quReg);
-    
     
     quantum_cnot(quRAM[10], quControlBit, quReg);
     
@@ -664,8 +729,9 @@ int main(int argc, const char * argv[])
 {
     quantum_reg quReg;
     
-    srand((unsigned int)clock()*100000);
     
+    srand((unsigned int)clock()*100000);
+
     quReg = quantum_new_qureg(0, queenWidth);
     quantum_addscratch(totalWidth-queenWidth, &quReg);
     
@@ -677,7 +743,7 @@ int main(int argc, const char * argv[])
     quantum_sigma_x(quControlBit, &quReg);
     quantum_hadamard(quControlBit, &quReg);
     
-    for (int i = 0; i< 4; i++) {
+    for (int i = 0; i< 34; i++) {
         Oracle(&quReg);
         Inversion(&quReg);
     }
@@ -685,16 +751,27 @@ int main(int argc, const char * argv[])
     quantum_sigma_z(quControlBit, &quReg);
     quantum_hadamard(quControlBit, &quReg);
     
-    quantum_print_qureg(quReg);
-    
     unsigned long long returnVal = quantum_measure(quReg);
     
     quantum_delete_qureg(&quReg);
+    
     
     int Queens[5] = {returnVal % 8, (returnVal >> 3) % 8, (returnVal >> 6) % 8, (returnVal >> 9) % 8, (returnVal >> 12) % 8};
     
     printf("D0 : %d\nD1 : %d\nD2 : %d\nD3 : %d\nD4 : %d\n", Queens[0], Queens[1], Queens[2], Queens[3], Queens[4]);
     
-
+    for (int i = 0; i< 5; i++) {
+        printf("\n|");
+        for (int j = 0; j<5; j++) {
+            if (Queens[j] == 4-i) {
+                printf("x|");
+            }
+            else {
+                printf(" |");
+            }
+        }
+    }
+    printf("\n");
+    
     return 0;
 }

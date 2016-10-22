@@ -588,6 +588,7 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
     int reg1 = OutReg+2;
     int reg2 = OutReg+3;
     
+    //quantum_print_qureg(*quReg);
     
     quantum_sigma_x(reg2, quReg);
     
@@ -609,14 +610,19 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
             quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
             quantum_sigma_x(queens[i][0], quReg);
             quantum_sigma_x(queens[i][1], quReg);
-        } else if (order == 7) {
+        } else if (order == 6) {
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+            quantum_sigma_x(reg0, quReg);
             quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
+            quantum_sigma_x(reg0, quReg);
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
         }
         
     }
     depth = reg2+i - OutReg;
+    
     quantum_cnot(reg2+i, OutReg, quReg);
+    //quantum_print_qureg(*quReg);
     
     for (i = nb_queens-1; i>=0; i--) {
         if (order == 4) {
@@ -636,14 +642,20 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
             quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
             quantum_sigma_x(queens[i][0], quReg);
             quantum_sigma_x(queens[i][1], quReg);
-        } else if (order == 7) {
-            quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
+        } else if (order == 6) {
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+            quantum_sigma_x(reg0, quReg);
+            quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
+            quantum_sigma_x(reg0, quReg);
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+
         }
         
     }
     
     quantum_sigma_x(reg2, quReg);
+    
+    //quantum_print_qureg(*quReg);
     
     return depth+1;
 }
@@ -768,18 +780,23 @@ int main(int argc, const char * argv[])
     if( argc == 3 ) {
         printf("cheat code activated\n");
         cheat_code_active = 1;
+        nb_queens = atoi(argv[2]);
     } else if (argc < 2) {
         printf("not enough argument\n");
         exit(-1);
+    } else if (argc == 2) {
+        nb_queens = atoi(argv[1]);
     }
+        
     
-    nb_queens = atoi(argv[2]);
+
     
     quantum_reg quReg;
 
     srand((unsigned int)clock()*100000);
 
     quReg = quantum_new_qureg(0, nb_queens*3+1);
+    quantum_addscratch(15, &quReg);
     
     //superpose queens states
     for (int i = 0; i< nb_queens*3; i++)
@@ -790,12 +807,38 @@ int main(int argc, const char * argv[])
     quantum_hadamard(quControlBit, &quReg);
     
     int order=1;
-    if (!cheat_code_active)
-        order = 43;
+    int autoMode = 0;
+    if (!cheat_code_active) {
+        switch (nb_queens) {
+            case 5:
+                order = 43;
+                break;
+            case 4 :
+                order = 34;
+                break;
+            default :
+                autoMode = 1;
+                order = 1000;
+                break;
+        }
+    }
     
+        double proba = 0.0;
     for (int i = 0; i< order; i++) {
+        double intermediate_proba;
         Oracle(&quReg);
         Inversion(&quReg);
+        
+        if (autoMode) {
+            intermediate_proba = quantum_prob(quReg.amplitude[0]);
+            printf("AutoPass : %d P = %.15f\n", i, intermediate_proba);
+            if ((proba != 0.0) && (intermediate_proba > proba)){
+
+                break;
+            } else {
+                proba = intermediate_proba;
+            }
+        }
     }
 
     quantum_sigma_z(quControlBit, &quReg);

@@ -27,7 +27,6 @@ const int queenWidth = 15;
 const int nb_queens =  queenWidth/ 3;
 const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
 
-
 const int quControlBit = 15;
 
 const int quRAM = 16;
@@ -642,7 +641,6 @@ void Oracle(quantum_reg *quReg)
     int reg2 = quRAM+maxDepth+2;
     int reg3 = quRAM+maxDepth+3;
     
-    printf("maxDepth Oracle= %d\n", maxDepth);
     quantum_cnot(reg0, reg1, quReg);
     CheckLines(reg0, quReg);
     

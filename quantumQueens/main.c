@@ -18,18 +18,18 @@ const int queen1[3] = {3,4,5};
 const int queen2[3] = {6,7,8};
 const int queen3[3] = {9,10,11};
 const int queen4[3] = {12,13,14};
-/*int queen5[3] = {15,16,17};
+const int queen5[3] = {15,16,17};
 int queen6[3] = {18,19,20};
 int queen7[3] = {21,22,23};
-*/
 
-const int queenWidth = 15;
-const int nb_queens =  queenWidth/ 3;
-const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
 
-const int quControlBit = 15;
+const int queenWidth = 24;
+int nb_queens =  queenWidth/ 3;
+const int *queens[queenWidth/ 3] = {queen0, queen1, queen2, queen3, queen4, queen5, queen6, queen7};
 
-const int quRAM = 16;
+const int quControlBit = queenWidth;
+
+const int quRAM = quControlBit+1;
 
 
 
@@ -580,7 +580,7 @@ int CheckLines(int OutReg, quantum_reg *quReg)
     return depth+1;
 }
 
-int CheckLimit(int OutReg, quantum_reg *quReg) {
+int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
     
     int depth=0;
     int i;
@@ -592,38 +592,54 @@ int CheckLimit(int OutReg, quantum_reg *quReg) {
     quantum_sigma_x(reg2, quReg);
     
     for (i = 0; i< nb_queens; i++) {
-        quantum_sigma_x(queens[i][1], quReg);
-        quantum_sigma_x(queens[i][0], quReg);
-        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
-        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
-        quantum_sigma_x(queens[i][2], quReg);
-        quantum_cnot(queens[i][2], reg1, quReg);
-        quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
-        quantum_cnot(queens[i][2], reg1, quReg);
-        quantum_sigma_x(queens[i][2], quReg);
-        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
-        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
-        quantum_sigma_x(queens[i][0], quReg);
-        quantum_sigma_x(queens[i][1], quReg);
+        if (order == 4) {
+            quantum_sigma_x(queens[i][2], quReg);
+            quantum_toffoli(queens[i][2], reg2+i, reg2+i+1, quReg);
+        } else if (order == 5) {
+            quantum_sigma_x(queens[i][1], quReg);
+            quantum_sigma_x(queens[i][0], quReg);
+            quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+            quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+            quantum_sigma_x(queens[i][2], quReg);
+            quantum_cnot(queens[i][2], reg1, quReg);
+            quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
+            quantum_cnot(queens[i][2], reg1, quReg);
+            quantum_sigma_x(queens[i][2], quReg);
+            quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+            quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+            quantum_sigma_x(queens[i][0], quReg);
+            quantum_sigma_x(queens[i][1], quReg);
+        } else if (order == 7) {
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+            quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
+        }
         
     }
     depth = reg2+i - OutReg;
     quantum_cnot(reg2+i, OutReg, quReg);
     
     for (i = nb_queens-1; i>=0; i--) {
-        quantum_sigma_x(queens[i][1], quReg);
-        quantum_sigma_x(queens[i][0], quReg);
-        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
-        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
-        quantum_sigma_x(queens[i][2], quReg);
-        quantum_cnot(queens[i][2], reg1, quReg);
-        quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
-        quantum_cnot(queens[i][2], reg1, quReg);
-        quantum_sigma_x(queens[i][2], quReg);
-        quantum_toffoli(queens[i][1], reg0, reg1, quReg);
-        quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
-        quantum_sigma_x(queens[i][0], quReg);
-        quantum_sigma_x(queens[i][1], quReg);
+        if (order == 4) {
+            quantum_toffoli(queens[i][2], reg2+i, reg2+i+1, quReg);
+            quantum_sigma_x(queens[i][2], quReg);
+        } else if (order == 5) {
+            quantum_sigma_x(queens[i][1], quReg);
+            quantum_sigma_x(queens[i][0], quReg);
+            quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+            quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+            quantum_sigma_x(queens[i][2], quReg);
+            quantum_cnot(queens[i][2], reg1, quReg);
+            quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
+            quantum_cnot(queens[i][2], reg1, quReg);
+            quantum_sigma_x(queens[i][2], quReg);
+            quantum_toffoli(queens[i][1], reg0, reg1, quReg);
+            quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
+            quantum_sigma_x(queens[i][0], quReg);
+            quantum_sigma_x(queens[i][1], quReg);
+        } else if (order == 7) {
+            quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+        }
         
     }
     
@@ -643,7 +659,6 @@ void Oracle(quantum_reg *quReg)
     
     quantum_cnot(reg0, reg1, quReg);
     CheckLines(reg0, quReg);
-    
     CheckDiagonals(reg0, 1, quReg);
     quantum_toffoli(reg0, reg1, reg2, quReg);
     CheckDiagonals(reg0, 1, quReg);
@@ -652,9 +667,14 @@ void Oracle(quantum_reg *quReg)
     quantum_toffoli(reg0, reg2, reg3, quReg);
     CheckDiagonals(reg0, 2, quReg);
     
-    CheckLimit(reg0, quReg);
-    quantum_toffoli(reg0, reg3, quControlBit, quReg);
-    CheckLimit(reg0, quReg);
+    if (nb_queens < 8) {
+        CheckLimit(reg0, nb_queens, quReg);
+        quantum_toffoli(reg0, reg3, quControlBit, quReg);
+        CheckLimit(reg0, nb_queens, quReg);
+        
+    } else {
+        quantum_cnot(reg3, quControlBit, quReg);
+    }
     
     CheckDiagonals(reg0, 2, quReg);
     quantum_toffoli(reg0, reg2, reg3, quReg);
@@ -668,6 +688,8 @@ void Oracle(quantum_reg *quReg)
     CheckLines(reg0, quReg);
     quantum_cnot(reg0, reg1, quReg);
     CheckLines(reg0, quReg);
+    
+    //quantum_print_qureg(*quReg);
 
 }
 
@@ -675,28 +697,28 @@ void Inversion(quantum_reg *quReg)
 {
     int i = 0;
     
-    for (int i = 0; i< queenWidth; i++)
+    for (int i = 0; i< nb_queens*3; i++)
         quantum_hadamard(i, quReg);
-    for (int i = 0; i< queenWidth; i++)
+    for (int i = 0; i< nb_queens*3; i++)
         quantum_sigma_x(i, quReg);
     
     quantum_sigma_x(quRAM, quReg);
     
-    for (i = 0; i< queenWidth; i++) {
+    for (i = 0; i< nb_queens*3; i++) {
         quantum_toffoli(queen0[0] + i, quRAM+i, quRAM+i+1, quReg);
     }
 
     quantum_cnot(quRAM+i, quControlBit, quReg);
     
-    for (i = queenWidth - 1; i >=0; i--) {
+    for (i = nb_queens*3 - 1; i >=0; i--) {
         quantum_toffoli(queen0[0] + i, quRAM+i, quRAM+i+1, quReg);
     }
     
     quantum_sigma_x(quRAM, quReg);
     
-    for (int i = 0; i< queenWidth; i++)
+    for (int i = 0; i< nb_queens*3; i++)
         quantum_sigma_x(i, quReg);
-    for (int i = 0; i< queenWidth; i++)
+    for (int i = 0; i< nb_queens*3; i++)
         quantum_hadamard(i, quReg);
     
 }
@@ -704,12 +726,12 @@ void Inversion(quantum_reg *quReg)
 void printQueensFromState(unsigned long long state) {
     
     
-    int Queens[nb_queens] = {state % 8, (state >> 3) % 8, (state >> 6) % 8, (state >> 9) % 8, (state >> 12) % 8};
+    int Queens[queenWidth/3] = {state % 8, (state >> 3) % 8, (state >> 6) % 8, (state >> 9) % 8, (state >> 12) % 8, (state >> 15) %8, (state >> 18) %8, (state >> 21) %8};
 
     for (int i = 0; i< nb_queens; i++) {
         printf("\n|");
         for (int j = 0; j<nb_queens; j++) {
-            if (Queens[j] == 4-i) {
+            if (Queens[j] == nb_queens-1-i) {
                 printf("x|");
             }
             else {
@@ -743,19 +765,24 @@ int main(int argc, const char * argv[])
     //cheat code, do not use grover algorithm till the end, read directly the max probability after 1 passes (gain for 5 queens : 2m40 -> 2s40)
     int cheat_code_active = 0;
     
-    if( argc == 2 ) {
+    if( argc == 3 ) {
         printf("cheat code activated\n");
         cheat_code_active = 1;
+    } else if (argc < 2) {
+        printf("not enough argument\n");
+        exit(-1);
     }
+    
+    nb_queens = atoi(argv[2]);
     
     quantum_reg quReg;
 
     srand((unsigned int)clock()*100000);
 
-    quReg = quantum_new_qureg(0, queenWidth);
+    quReg = quantum_new_qureg(0, nb_queens*3+1);
     
     //superpose queens states
-    for (int i = 0; i< queenWidth; i++)
+    for (int i = 0; i< nb_queens*3; i++)
         quantum_hadamard(i, &quReg);
     
     //initialize control bit

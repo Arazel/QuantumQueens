@@ -465,7 +465,7 @@ void CheckDiagonals(int OutReg, quantum_reg *quReg)
     
     QueensAreNotInDiagonal(queen0, queen1, reg0, 1, quReg);
     quantum_cnot(reg0, reg1, quReg);
-    //quantum_print_qureg(*quReg);
+
     QueensAreNotInDiagonal(queen0, queen1, reg0, 1, quReg);
     
     QueensAreNotInDiagonal(queen1, queen2, reg0, 1, quReg);
@@ -525,9 +525,8 @@ void Check2ndDiagonal(int OutReg, quantum_reg *quReg)
 
 void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
 {
-//max depth = nb queens + 11
-    
-    const int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    //max depth = nb queens + 11
+    const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
     
     int reg0 = OutReg + 1;
     int reg1 = OutReg + 11;
@@ -535,26 +534,24 @@ void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
     
     quantum_sigma_x(reg1, quReg);
     
-    for (i = 0; i<5; i++) {
+    for (i = 0; i<nb_queens; i++) {
         reg1 = reg1-1;
         if (queens[i] != q) {
             reg1=reg1+1;
             QueenCmp(q, queens[i], reg0, quReg);
             quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg); //symetrie
-            //printf("i = %d : %d + %d<-%d\n", i, reg0, reg1+i, reg1+i+1);
             InvQueenCmp(q, queens[i], reg0, quReg);
         }
     }
     
     quantum_cnot(reg1+i, OutReg, quReg); //symetrie
     
-    for (i = 5-1; i>=0; i--) {
+    for (i = nb_queens-1; i>=0; i--) {
         reg1 = reg1 + 1;
         if (queens[i] != q) {
             reg1 = reg1 - 1;
             QueenCmp(q, queens[i], reg0, quReg);
             quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg); //symetrie
-            //printf("i = %d : %d + %d<-%d\n", i, reg0, reg1+i, reg1+i+1);
             InvQueenCmp(q, queens[i], reg0, quReg);
         }
     }
@@ -565,14 +562,14 @@ void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
 void CheckLines(int OutReg, quantum_reg *quReg)
 {
     //depth = nb_queens + 17
-    const int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    const int *queens[nb_queens] = {queen0, queen1, queen2, queen3, queen4};
     int i;
     int reg0 = OutReg+1;
     int reg1 = OutReg+17;
     
     quantum_sigma_x(reg1, quReg);
     
-    for (i = 0; i<5; i++) {
+    for (i = 0; i<nb_queens; i++) {
         CheckAllLinesForQueen(queens[i], reg0, quReg);
         quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
         CheckAllLinesForQueen(queens[i], reg0, quReg);
@@ -581,7 +578,7 @@ void CheckLines(int OutReg, quantum_reg *quReg)
     quantum_cnot(reg1+i, OutReg, quReg);
     
     
-    for (i =5-1; i>=0; i--) {
+    for (i =nb_queens-1; i>=0; i--) {
         CheckAllLinesForQueen(queens[i], reg0, quReg);
         quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
         CheckAllLinesForQueen(queens[i], reg0, quReg);
@@ -600,9 +597,8 @@ void CheckLimit(int OutReg, quantum_reg *quReg) {
     
     
     quantum_sigma_x(reg2, quReg);
-        //quantum_print_qureg(*quReg);
     
-    for (i = 0; i< 5; i++) {
+    for (i = 0; i< nb_queens; i++) {
         quantum_sigma_x(queens[i][1], quReg);
         quantum_sigma_x(queens[i][0], quReg);
         quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
@@ -621,9 +617,7 @@ void CheckLimit(int OutReg, quantum_reg *quReg) {
     
     quantum_cnot(reg2+i, OutReg, quReg);
     
-    //quantum_print_qureg(*quReg);
-    
-    for (i = 5-1; i>=0; i--) {
+    for (i = nb_queens-1; i>=0; i--) {
         quantum_sigma_x(queens[i][1], quReg);
         quantum_sigma_x(queens[i][0], quReg);
         quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
@@ -641,8 +635,6 @@ void CheckLimit(int OutReg, quantum_reg *quReg) {
     }
     
     quantum_sigma_x(reg2, quReg);
-    
-    //quantum_print_qureg(*quReg);
 }
 
 void Oracle(quantum_reg *quReg)
@@ -651,9 +643,6 @@ void Oracle(quantum_reg *quReg)
     int reg1 = quRAM+29;
     int reg2 = quRAM+30;
     int reg3 = quRAM+31;
-    
-    
-    //quantum_print_qureg(*quReg);
     
     CheckLines(reg0, quReg);
     quantum_cnot(reg0, reg1, quReg);
@@ -683,10 +672,7 @@ void Oracle(quantum_reg *quReg)
     CheckLines(reg0, quReg);
     quantum_cnot(reg0, reg1, quReg);
     CheckLines(reg0, quReg);
-    
-            //quantum_print_qureg(*quReg);
-    
-    
+
 }
 
 void Inversion(quantum_reg *quReg)
@@ -722,13 +708,11 @@ void Inversion(quantum_reg *quReg)
 void printQueensFromState(unsigned long long state) {
     
     
-    int Queens[5] = {state % 8, (state >> 3) % 8, (state >> 6) % 8, (state >> 9) % 8, (state >> 12) % 8};
-    
-    //printf("D0 : %d\nD1 : %d\nD2 : %d\nD3 : %d\nD4 : %d\n", Queens[0], Queens[1], Queens[2], Queens[3], Queens[4]);
-    
-    for (int i = 0; i< 5; i++) {
+    int Queens[nb_queens] = {state % 8, (state >> 3) % 8, (state >> 6) % 8, (state >> 9) % 8, (state >> 12) % 8};
+
+    for (int i = 0; i< nb_queens; i++) {
         printf("\n|");
-        for (int j = 0; j<5; j++) {
+        for (int j = 0; j<nb_queens; j++) {
             if (Queens[j] == 4-i) {
                 printf("x|");
             }

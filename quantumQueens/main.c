@@ -32,12 +32,13 @@ const int quControlBit = 15;
 
 const int quRAM = 16;
 
-const int totalWidth = 48;
+const int totalWidth = 50;
 
 
 
-void QueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
+int QueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
 {
+    int depth = 8;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
     int reg2 = OutReg+3;
@@ -119,10 +120,13 @@ void QueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
     //16
     quantum_sigma_x(reg3, quReg);
     quantum_toffoli(reg3, qu1[2], OutReg, quReg);
+    
+    return depth;
 }
 
-void InvQueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
+int InvQueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
 {
+    int depth = 8;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
     int reg2 = OutReg+3;
@@ -204,11 +208,12 @@ void InvQueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
     quantum_sigma_x(qu1[0], quReg);
     quantum_sigma_x(qu0[1], quReg);
     
+    return depth;
 }
 
-void QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, quantum_reg *quReg)
+int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, quantum_reg *quReg)
 {
-    //max depth = 6 + 8 = 14
+    int depth = 14;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
     int reg2 = OutReg+3;
@@ -244,6 +249,8 @@ void QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, qua
             quantum_sigma_x(q0[0], quReg);
             break;
         default:
+            printf("order not supported");
+            exit(-1);
             break;
     }
 
@@ -454,74 +461,44 @@ void QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, qua
         default:
             break;
     }
+    
+    return depth;
 }
 
-void CheckDiagonals(int OutReg, quantum_reg *quReg)
+int CheckDiagonals(int OutReg, int order, quantum_reg *quReg)
 {
-    int reg0 = OutReg+1;
-    int reg1 = OutReg+16;
-    int reg2 = OutReg+17;
-    int reg3 = OutReg+18;
-    
-    
-    QueensAreNotInDiagonal(queen0, queen1, reg0, 1, quReg);
-    quantum_cnot(reg0, reg1, quReg);
-
-    QueensAreNotInDiagonal(queen0, queen1, reg0, 1, quReg);
-    
-    QueensAreNotInDiagonal(queen1, queen2, reg0, 1, quReg);
-    quantum_toffoli(reg0, reg1, reg2, quReg);
-    QueensAreNotInDiagonal(queen1, queen2, reg0, 1, quReg);
-    
-    QueensAreNotInDiagonal(queen2, queen3, reg0, 1, quReg);
-    quantum_toffoli(reg0, reg2, reg3, quReg);
-    QueensAreNotInDiagonal(queen2, queen3, reg0, 1, quReg);
-    
-    QueensAreNotInDiagonal(queen3, queen4, reg0, 1, quReg);
-    quantum_toffoli(reg0, reg3, OutReg, quReg);             //MAIN symetrie
-    QueensAreNotInDiagonal(queen3, queen4, reg0, 1, quReg);
-    
-    QueensAreNotInDiagonal(queen2, queen3, reg0, 1, quReg);
-    quantum_toffoli(reg0, reg2, reg3, quReg);
-    QueensAreNotInDiagonal(queen2, queen3, reg0, 1, quReg);
-    
-    QueensAreNotInDiagonal(queen1, queen2, reg0, 1, quReg);
-    quantum_toffoli(reg0, reg1, reg2, quReg);
-    QueensAreNotInDiagonal(queen1, queen2, reg0, 1, quReg);
-    
-    QueensAreNotInDiagonal(queen0, queen1, reg0, 1, quReg);
-    quantum_cnot(reg0, reg1, quReg);
-    QueensAreNotInDiagonal(queen0, queen1, reg0, 1, quReg);
-    
-}
-
-void Check2ndDiagonal(int OutReg, quantum_reg *quReg)
-{
+    int depth = 0;
     int i = 0;
     int reg0 = OutReg+1;
     int reg1 = OutReg+16;
     
     quantum_sigma_x(reg1, quReg);
-    for (i = 0; i < nb_queens-2; i++) {
-        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
-        quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
-        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
-    }
-    quantum_cnot(reg1+i, OutReg, quReg);
     
-    for (i = nb_queens-3; i >=0; i--) {
-        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
+    for (i = 0; i< nb_queens-order; i++) {
+        
+        QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, quReg);
         quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
-        QueensAreNotInDiagonal(queens[i], queens[i+2], reg0, 2, quReg);
+        QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, quReg);
+    }
+    
+    depth = reg1+i-OutReg;
+    quantum_cnot(reg1+i, OutReg, quReg); //MAIN symetrie
+    
+    for (i = nb_queens - order -1; i>=0; i--) {
+        
+        QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, quReg);
+        quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
+        QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, quReg);
     }
     quantum_sigma_x(reg1, quReg);
     
+    return depth;
 }
 
-void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
+int CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
 {
     //max depth = nb queens + 11
-    
+    int depth = 0;
     int reg0 = OutReg + 1;
     int reg1 = OutReg + 11;
     int i;
@@ -537,7 +514,7 @@ void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
             InvQueenCmp(q, queens[i], reg0, quReg);
         }
     }
-    
+    depth = reg1+i-OutReg;
     quantum_cnot(reg1+i, OutReg, quReg); //symetrie
     
     for (i = nb_queens-1; i>=0; i--) {
@@ -551,15 +528,17 @@ void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
     }
     
     quantum_sigma_x(reg1, quReg);
+    
+    return depth;
 }
 
-void CheckLines(int OutReg, quantum_reg *quReg)
+int CheckLines(int OutReg, quantum_reg *quReg)
 {
     //depth = nb_queens + 17
-    
+    int depth = 0;
     int i;
     int reg0 = OutReg+1;
-    int reg1 = OutReg+17;
+    int reg1 = OutReg+18;
     
     quantum_sigma_x(reg1, quReg);
     
@@ -568,7 +547,7 @@ void CheckLines(int OutReg, quantum_reg *quReg)
         quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
         CheckAllLinesForQueen(queens[i], reg0, quReg);
     }
-    
+    depth = reg1+i - OutReg;
     quantum_cnot(reg1+i, OutReg, quReg);
     
     
@@ -580,10 +559,12 @@ void CheckLines(int OutReg, quantum_reg *quReg)
     
     quantum_sigma_x(reg1, quReg);
 
+    return depth;
 }
 
-void CheckLimit(int OutReg, quantum_reg *quReg) {
+int CheckLimit(int OutReg, quantum_reg *quReg) {
     
+    int depth=0;
     int i;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
@@ -608,7 +589,7 @@ void CheckLimit(int OutReg, quantum_reg *quReg) {
         quantum_sigma_x(queens[i][1], quReg);
         
     }
-    
+    depth = reg2+i - OutReg;
     quantum_cnot(reg2+i, OutReg, quReg);
     
     for (i = nb_queens-1; i>=0; i--) {
@@ -629,38 +610,40 @@ void CheckLimit(int OutReg, quantum_reg *quReg) {
     }
     
     quantum_sigma_x(reg2, quReg);
+    
+    return depth;
 }
 
 void Oracle(quantum_reg *quReg)
 {
     int reg0 = quRAM;
-    int reg1 = quRAM+29;
-    int reg2 = quRAM+30;
-    int reg3 = quRAM+31;
+    int reg1 = quRAM+31;
+    int reg2 = quRAM+32;
+    int reg3 = quRAM+33;
     
     CheckLines(reg0, quReg);
     quantum_cnot(reg0, reg1, quReg);
     CheckLines(reg0, quReg);
     
-    CheckDiagonals(reg0, quReg);
+    CheckDiagonals(reg0, 1, quReg);
     quantum_toffoli(reg0, reg1, reg2, quReg);
-    CheckDiagonals(reg0, quReg);
+    CheckDiagonals(reg0, 1, quReg);
     
-    Check2ndDiagonal(reg0, quReg);
+    CheckDiagonals(reg0, 2, quReg);
     quantum_toffoli(reg0, reg2, reg3, quReg);
-    Check2ndDiagonal(reg0, quReg);
+    CheckDiagonals(reg0, 2, quReg);
     
     CheckLimit(reg0, quReg);
     quantum_toffoli(reg0, reg3, quControlBit, quReg);
     CheckLimit(reg0, quReg);
     
-    Check2ndDiagonal(reg0, quReg);
+    CheckDiagonals(reg0, 2, quReg);
     quantum_toffoli(reg0, reg2, reg3, quReg);
-    Check2ndDiagonal(reg0, quReg);
+    CheckDiagonals(reg0, 2, quReg);
     
-    CheckDiagonals(reg0, quReg);
+    CheckDiagonals(reg0, 1, quReg);
     quantum_toffoli(reg0, reg1, reg2, quReg);
-    CheckDiagonals(reg0, quReg);
+    CheckDiagonals(reg0, 1, quReg);
 
     
     CheckLines(reg0, quReg);

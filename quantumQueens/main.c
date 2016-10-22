@@ -13,29 +13,29 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define FAST_RESULT 1 //fast result, do not use grover algorithm till the end, read directly the max probability after 1 passes (gain for 5 queens : 2m40 -> 2s40)
-
-int queen0[3] = {0,1,2};
-int queen1[3] = {3,4,5};
-int queen2[3] = {6,7,8};
-int queen3[3] = {9,10,11};
-int queen4[3] = {12,13,14};
+const int queen0[3] = {0,1,2};
+const int queen1[3] = {3,4,5};
+const int queen2[3] = {6,7,8};
+const int queen3[3] = {9,10,11};
+const int queen4[3] = {12,13,14};
 /*int queen5[3] = {15,16,17};
 int queen6[3] = {18,19,20};
 int queen7[3] = {21,22,23};
 */
 
-int queenWidth = 15;
+const int queenWidth = 15;
 
-int quControlBit = 15;
+const int nb_queens =  queenWidth/ 3;
 
-int quRAM[32] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
+const int quControlBit = 15;
 
-int totalWidth = 48;
+const int quRAM = 16;
+
+const int totalWidth = 48;
 
 
 
-void QueenCmp(int *qu0, int *qu1, int OutReg, quantum_reg *quReg)
+void QueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
 {
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
@@ -120,7 +120,7 @@ void QueenCmp(int *qu0, int *qu1, int OutReg, quantum_reg *quReg)
     quantum_toffoli(reg3, qu1[2], OutReg, quReg);
 }
 
-void InvQueenCmp(int *qu0, int *qu1, int OutReg, quantum_reg *quReg)
+void InvQueenCmp(const int *qu0, const int *qu1, int OutReg, quantum_reg *quReg)
 {
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
@@ -205,7 +205,7 @@ void InvQueenCmp(int *qu0, int *qu1, int OutReg, quantum_reg *quReg)
     
 }
 
-void QueensAreNotInDiagonal(int *q0, int* q1, int OutReg, int n, quantum_reg *quReg)
+void QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, quantum_reg *quReg)
 {
     //max depth = 6 + 8 = 14
     int reg0 = OutReg+1;
@@ -523,11 +523,11 @@ void Check2ndDiagonal(int OutReg, quantum_reg *quReg)
     
 }
 
-void CheckAllLinesForQueen(int *q, int OutReg, quantum_reg *quReg)
+void CheckAllLinesForQueen(const int *q, int OutReg, quantum_reg *quReg)
 {
 //max depth = nb queens + 11
     
-    int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    const int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
     
     int reg0 = OutReg + 1;
     int reg1 = OutReg + 11;
@@ -565,7 +565,7 @@ void CheckAllLinesForQueen(int *q, int OutReg, quantum_reg *quReg)
 void CheckLines(int OutReg, quantum_reg *quReg)
 {
     //depth = nb_queens + 17
-    int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    const int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
     int i;
     int reg0 = OutReg+1;
     int reg1 = OutReg+17;
@@ -592,7 +592,7 @@ void CheckLines(int OutReg, quantum_reg *quReg)
 }
 
 void CheckLimit(int OutReg, quantum_reg *quReg) {
-    int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
+    const int *queens[5] = {queen0, queen1, queen2, queen3, queen4};
     int i;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
@@ -647,38 +647,42 @@ void CheckLimit(int OutReg, quantum_reg *quReg) {
 
 void Oracle(quantum_reg *quReg)
 {
-  
+    int reg0 = quRAM;
+    int reg1 = quRAM+29;
+    int reg2 = quRAM+30;
+    int reg3 = quRAM+31;
+    
     
     //quantum_print_qureg(*quReg);
     
-    CheckLines(quRAM[0], quReg);
-    quantum_cnot(quRAM[0], quRAM[29], quReg);
-    CheckLines(quRAM[0], quReg);
+    CheckLines(reg0, quReg);
+    quantum_cnot(reg0, reg1, quReg);
+    CheckLines(reg0, quReg);
     
-    CheckDiagonals(quRAM[0], quReg);
-    quantum_toffoli(quRAM[29], quRAM[0], quRAM[30], quReg);
-    CheckDiagonals(quRAM[0], quReg);
+    CheckDiagonals(reg0, quReg);
+    quantum_toffoli(reg0, reg1, reg2, quReg);
+    CheckDiagonals(reg0, quReg);
     
-    Check2ndDiagonal(quRAM[0], quReg);
-    quantum_toffoli(quRAM[0], quRAM[30], quRAM[31], quReg);
-    Check2ndDiagonal(quRAM[0], quReg);
+    Check2ndDiagonal(reg0, quReg);
+    quantum_toffoli(reg0, reg2, reg3, quReg);
+    Check2ndDiagonal(reg0, quReg);
     
-    CheckLimit(quRAM[0], quReg);
-    quantum_toffoli(quRAM[0], quRAM[31], quControlBit, quReg);
-    CheckLimit(quRAM[0], quReg);
+    CheckLimit(reg0, quReg);
+    quantum_toffoli(reg0, reg3, quControlBit, quReg);
+    CheckLimit(reg0, quReg);
     
-    Check2ndDiagonal(quRAM[0], quReg);
-    quantum_toffoli(quRAM[0], quRAM[30], quRAM[31], quReg);
-    Check2ndDiagonal(quRAM[0], quReg);
+    Check2ndDiagonal(reg0, quReg);
+    quantum_toffoli(reg0, reg2, reg3, quReg);
+    Check2ndDiagonal(reg0, quReg);
     
-    CheckDiagonals(quRAM[0], quReg);
-    quantum_toffoli(quRAM[29], quRAM[0], quRAM[30], quReg);
-    CheckDiagonals(quRAM[0], quReg);
+    CheckDiagonals(reg0, quReg);
+    quantum_toffoli(reg0, reg1, reg2, quReg);
+    CheckDiagonals(reg0, quReg);
 
     
-    CheckLines(quRAM[0], quReg);
-    quantum_cnot(quRAM[0], quRAM[29], quReg);
-    CheckLines(quRAM[0], quReg);
+    CheckLines(reg0, quReg);
+    quantum_cnot(reg0, reg1, quReg);
+    CheckLines(reg0, quReg);
     
             //quantum_print_qureg(*quReg);
     
@@ -694,19 +698,19 @@ void Inversion(quantum_reg *quReg)
     for (int i = 0; i< queenWidth; i++)
         quantum_sigma_x(i, quReg);
     
-    quantum_sigma_x(quRAM[0], quReg);
+    quantum_sigma_x(quRAM, quReg);
     
     for (i = 0; i< queenWidth; i++) {
-        quantum_toffoli(queen0[0] + i, quRAM[i], quRAM[i+1], quReg);
+        quantum_toffoli(queen0[0] + i, quRAM+i, quRAM+i+1, quReg);
     }
 
-    quantum_cnot(quRAM[i], quControlBit, quReg);
+    quantum_cnot(quRAM+i, quControlBit, quReg);
     
     for (i = queenWidth - 1; i >=0; i--) {
-        quantum_toffoli(queen0[0] + i, quRAM[i], quRAM[i+1], quReg);
+        quantum_toffoli(queen0[0] + i, quRAM+i, quRAM+i+1, quReg);
     }
     
-    quantum_sigma_x(quRAM[0], quReg);
+    quantum_sigma_x(quRAM, quReg);
     
     for (int i = 0; i< queenWidth; i++)
         quantum_sigma_x(i, quReg);
@@ -756,9 +760,16 @@ unsigned long long quantum_max_proba_state (quantum_reg quReg) {
 
 int main(int argc, const char * argv[])
 {
+    //cheat code, do not use grover algorithm till the end, read directly the max probability after 1 passes (gain for 5 queens : 2m40 -> 2s40)
+    int cheat_code_active = 0;
+    
+    if( argc == 2 ) {
+        printf("cheat code activated\n");
+        cheat_code_active = 1;
+    }
+    
     quantum_reg quReg;
-    
-    
+
     srand((unsigned int)clock()*100000);
 
     quReg = quantum_new_qureg(0, queenWidth);
@@ -771,11 +782,11 @@ int main(int argc, const char * argv[])
     //initialize control bit
     quantum_sigma_x(quControlBit, &quReg);
     quantum_hadamard(quControlBit, &quReg);
-#ifdef FAST_RESULT
-    int order = 1;
-#else
-    int order = 43;
-#endif
+    
+    int order=1;
+    if (!cheat_code_active)
+        order = 43;
+    
     for (int i = 0; i< order; i++) {
         Oracle(&quReg);
         Inversion(&quReg);
@@ -786,15 +797,12 @@ int main(int argc, const char * argv[])
     
     unsigned long long returnVal = 0;
     
-#ifdef FAST_RESULT
-    returnVal = quantum_max_proba_state(quReg);
-
-#else
-    returnVal = quantum_measure(quReg);
-#endif
+    if (cheat_code_active)
+        returnVal = quantum_max_proba_state(quReg);
+    else
+        returnVal = quantum_measure(quReg);
     
     quantum_delete_qureg(&quReg);
-    
     
     printQueensFromState(returnVal);
     

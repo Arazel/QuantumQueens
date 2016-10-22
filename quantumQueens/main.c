@@ -616,6 +616,14 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
             quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
             quantum_sigma_x(reg0, quReg);
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+        } else if (order == 7) {
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+            quantum_toffoli(queens[i][0], reg0, reg1, quReg);
+            quantum_sigma_x(reg1, quReg);
+            quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
+            quantum_sigma_x(reg1, quReg);
+            quantum_toffoli(queens[i][0], reg0, reg1, quReg);
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
         }
         
     }
@@ -648,7 +656,14 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
             quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
             quantum_sigma_x(reg0, quReg);
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
-
+        } else if (order == 7) {
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
+            quantum_toffoli(queens[i][0], reg0, reg1, quReg);
+            quantum_sigma_x(reg1, quReg);
+            quantum_toffoli(reg1, reg2+i, reg2+i+1, quReg);
+            quantum_sigma_x(reg1, quReg);
+            quantum_toffoli(queens[i][0], reg0, reg1, quReg);
+            quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
         }
         
     }

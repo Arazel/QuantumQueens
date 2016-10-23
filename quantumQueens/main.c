@@ -831,6 +831,9 @@ int main(int argc, const char * argv[])
             case 4 :
                 order = 34;
                 break;
+            case 6:
+                order = 70;
+                break;
             default :
                 autoMode = 1;
                 order = 1000;
@@ -846,7 +849,8 @@ int main(int argc, const char * argv[])
         
         if (autoMode) {
             intermediate_proba = quantum_prob(quReg.amplitude[0]);
-            printf("AutoPass : %d P = %.15f\n", i, intermediate_proba);
+            printf("AutoPass : %d ", i);
+            quantum_max_proba_state(quReg);
             if ((proba != 0.0) && (intermediate_proba > proba)){
 
                 break;

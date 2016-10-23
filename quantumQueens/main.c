@@ -34,6 +34,13 @@ const int quRAM = quControlBit+1;
 
 
 
+//magic circuit obtained via revkit from a boolean expression
+//implementation of qu0 != qu1
+//qu0 : first queen to compare
+//qu1 : second queen to compare
+//Outreg : output bit
+//simulate : boolean indicating if we need to execute or if we only need stack depth
+//quReg : quantum Register for context
 int QueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantum_reg *quReg)
 {
     int depth = 8;
@@ -47,8 +54,10 @@ int QueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantum_r
     int reg7 = OutReg+8;
     
     
+    //simulate returns only the depth of the stack of this function
     if (simulate)
         return depth+1;
+
     
     //2 first gates 1,2
     quantum_sigma_x(qu0[1], quReg);
@@ -125,6 +134,14 @@ int QueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantum_r
     return depth+1;
 }
 
+
+//reverse of QueenCmp
+//reverse implementation of qu0 != qu1
+//qu0 : first queen to compare
+//qu1 : second queen to compare
+//Outreg : output bit
+//simulate : boolean indicating if we need to execute or if we only need stack depth
+//quReg : quantum Register for context
 int InvQueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantum_reg *quReg)
 {
     int depth = 8;
@@ -139,6 +156,7 @@ int InvQueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantu
     
     if (simulate)
         return depth+1;
+
     
     //16
     quantum_toffoli(reg3, qu1[2], OutReg, quReg);
@@ -215,8 +233,16 @@ int InvQueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantu
     return depth+1;
 }
 
+//reversed function to calculate if q0 is n lines under or above q1
+//Circuit decomposed and eplained
+//q0 : first queen to compare
+//q1 : second queen to compare
+//Outreg : output bit
+//simulate : boolean indicating if we need to execute or if we only need stack depth
+//quReg : quantum Register for context
 int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int simulate, quantum_reg *quReg)
 {
+    
     int depth = 14;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
@@ -471,39 +497,56 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
     return depth+1;
 }
 
+
+//checks diagonal is empty for each queen
+//OutReg: output bit
+//order : distance of queens to compare in term of columns
+//quReg : quantum register
 int CheckDiagonals(int OutReg, int order, quantum_reg *quReg)
 {
     int depth = 0;
     int i = 0;
     int reg0 = OutReg+1;
+    //check maxDepth to initialize calcul register index
     int maxDepth =     QueensAreNotInDiagonal(queens[0], queens[order], reg0, order, 1, quReg);
     QueensAreNotInDiagonal(queens[0], queens[order], reg0, order, 1, quReg);
     
     int reg1 = OutReg+maxDepth+1;
     
+    //initialize calcul register to 1 to get right toffoli waterfall start
     quantum_sigma_x(reg1, quReg);
     
+    //check diagonal for each queen
     for (i = 0; i< nb_queens-order; i++) {
-        
+        //check queens in diagonal
         QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, 0, quReg);
+        //store result anded with previous reg in next register
         quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
+        //rewind
         QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, 0, quReg);
     }
     
+    //store depth of the function to be returned
     depth = reg1+i-OutReg;
+    //store main result in output bit
     quantum_cnot(reg1+i, OutReg, quReg); //MAIN symetrie
     
+    //rewind function for each queen
     for (i = nb_queens - order -1; i>=0; i--) {
         
         QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, 0, quReg);
         quantum_toffoli(reg0, reg1+i, reg1+i+1, quReg);
         QueensAreNotInDiagonal(queens[i], queens[i+order], reg0, order, 0, quReg);
     }
+    //rewind init
     quantum_sigma_x(reg1, quReg);
     
+    //return depth
     return depth+1;
 }
 
+
+//same as above but for one queen alone on the line
 int CheckAllLinesForQueen(const int *q, int OutReg, int simulate, quantum_reg *quReg)
 {
     //max depth = nb queens + 11
@@ -547,6 +590,7 @@ int CheckAllLinesForQueen(const int *q, int OutReg, int simulate, quantum_reg *q
     return depth+1;
 }
 
+//check each queen is alone on its line
 int CheckLines(int OutReg, quantum_reg *quReg)
 {
     //depth = nb_queens + 17
@@ -580,6 +624,7 @@ int CheckLines(int OutReg, quantum_reg *quReg)
     return depth+1;
 }
 
+//limit value of queen for heigh of the chess board (ex. each queen < 7 for a 6 queens size)
 int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
     
     int depth=0;
@@ -588,15 +633,15 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
     int reg1 = OutReg+2;
     int reg2 = OutReg+3;
     
-    //quantum_print_qureg(*quReg);
-    
     quantum_sigma_x(reg2, quReg);
     
     for (i = 0; i< nb_queens; i++) {
         if (order == 4) {
+            //check if q < 5 -> q[2] = 0
             quantum_sigma_x(queens[i][2], quReg);
             quantum_toffoli(queens[i][2], reg2+i, reg2+i+1, quReg);
         } else if (order == 5) {
+            //check if q < 6 -> q2[2] || q1[1]
             quantum_sigma_x(queens[i][1], quReg);
             quantum_sigma_x(queens[i][0], quReg);
             quantum_toffoli(queens[i][0], queens[i][2], reg0, quReg);
@@ -611,12 +656,14 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
             quantum_sigma_x(queens[i][0], quReg);
             quantum_sigma_x(queens[i][1], quReg);
         } else if (order == 6) {
+            //check if q < 7 -> !(q[2]q[1])
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
             quantum_sigma_x(reg0, quReg);
             quantum_toffoli(reg0, reg2+i, reg2+i+1, quReg);
             quantum_sigma_x(reg0, quReg);
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
         } else if (order == 7) {
+            //check if q < 8 -> !(q[2]q[1]q[0])
             quantum_toffoli(queens[i][2], queens[i][1], reg0, quReg);
             quantum_toffoli(queens[i][0], reg0, reg1, quReg);
             quantum_sigma_x(reg1, quReg);
@@ -630,8 +677,8 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
     depth = reg2+i - OutReg;
     
     quantum_cnot(reg2+i, OutReg, quReg);
-    //quantum_print_qureg(*quReg);
     
+    //rewind
     for (i = nb_queens-1; i>=0; i--) {
         if (order == 4) {
             quantum_toffoli(queens[i][2], reg2+i, reg2+i+1, quReg);
@@ -670,11 +717,11 @@ int CheckLimit(int OutReg, int order, quantum_reg *quReg) {
     
     quantum_sigma_x(reg2, quReg);
     
-    //quantum_print_qureg(*quReg);
-    
     return depth+1;
 }
 
+//check constraint for every state
+//oracle function of grover algorithm
 void Oracle(quantum_reg *quReg)
 {
     int reg0 = quRAM;
@@ -716,10 +763,9 @@ void Oracle(quantum_reg *quReg)
     quantum_cnot(reg0, reg1, quReg);
     CheckLines(reg0, quReg);
     
-    //quantum_print_qureg(*quReg);
-
 }
 
+//invertion function of grover search, amplifies phased state
 void Inversion(quantum_reg *quReg)
 {
     int i = 0;
@@ -750,6 +796,7 @@ void Inversion(quantum_reg *quReg)
     
 }
 
+//display queens in a chessboard for one particular state
 void printQueensFromState(unsigned long long state) {
     
     
@@ -768,6 +815,8 @@ void printQueensFromState(unsigned long long state) {
     }
     printf("\n");
 }
+
+//get max probablity state from a register
 unsigned long long quantum_max_proba_state (quantum_reg quReg) {
     
     double maxProba = 0.0;
@@ -792,6 +841,7 @@ int main(int argc, const char * argv[])
     //cheat code, do not use grover algorithm till the end, read directly the max probability after 1 passes (gain for 5 queens : 2m40 -> 2s40)
     int cheat_code_active = 0;
     
+    //check arguments
     if( argc == 3 ) {
         printf("cheat code activated\n");
         cheat_code_active = 1;
@@ -810,8 +860,11 @@ int main(int argc, const char * argv[])
 
     srand((unsigned int)clock()*100000);
 
+    //initialize quantum register
     quReg = quantum_new_qureg(0, nb_queens*3+1);
-    quantum_addscratch(15, &quReg);
+    
+    //add scratch to visualize debug; remove to increase calculation speed
+    //quantum_addscratch(15, &quReg);
     
     //superpose queens states
     for (int i = 0; i< nb_queens*3; i++)
@@ -821,6 +874,7 @@ int main(int argc, const char * argv[])
     quantum_sigma_x(quControlBit, &quReg);
     quantum_hadamard(quControlBit, &quReg);
     
+    // determine number of grover loop. 1 if cheat code, a lot for auto stop search
     int order=1;
     int autoMode = 0;
     if (!cheat_code_active) {
@@ -836,17 +890,19 @@ int main(int argc, const char * argv[])
                 break;
             default :
                 autoMode = 1;
-                order = 1000;
+                order = 100000;
                 break;
         }
     }
     
         double proba = 0.0;
     for (int i = 0; i< order; i++) {
+        //run grover loop
         double intermediate_proba;
         Oracle(&quReg);
         Inversion(&quReg);
         
+        //if automode, check if noise probability get greater
         if (autoMode) {
             intermediate_proba = quantum_prob(quReg.amplitude[0]);
             printf("AutoPass : %d ", i);
@@ -860,18 +916,23 @@ int main(int argc, const char * argv[])
         }
     }
 
+    //put controlBit unphased to read the right state
     quantum_sigma_z(quControlBit, &quReg);
+    //doubles probability
     quantum_hadamard(quControlBit, &quReg);
     
     unsigned long long returnVal = 0;
     
+    //if cheat code, read directly in the probability of states.
     if (cheat_code_active)
         returnVal = quantum_max_proba_state(quReg);
     else
         returnVal = quantum_measure(quReg);
     
+    //clean quReg
     quantum_delete_qureg(&quReg);
     
+    //display result
     printQueensFromState(returnVal);
     
     return 0;

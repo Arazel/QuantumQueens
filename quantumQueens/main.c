@@ -284,25 +284,27 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
 
             break;
         case 4:
-            //q0 <4
+            //q0 < 4
             quantum_sigma_x(q0[2], quReg);
             quantum_cnot(q0[2], reg1, quReg);
             quantum_sigma_x(q0[2], quReg);
 
             break;
         case 5:
-            //q0 <5
+            //q0 <3
+            quantum_sigma_x(q0[0], quReg);
+            quantum_toffoli(q0[0], q0[1], reg0, quReg);
+            quantum_toffoli(q0[2], reg0, reg1, quReg);
+            quantum_cnot(q0[0], reg1, quReg);
+            quantum_sigma_x(q0[0], quReg);
+            break;
+        case 6:
+            //q0 < 2
+            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[1], quReg);
+            quantum_toffoli(q0[0], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_cnot(q0[2], reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_sigma_x(q0[1], quReg);
             break;
         default:
             printf("order not supported");
@@ -367,18 +369,23 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             quantum_sigma_x(q0[2], quReg);
             break;
         case 5:
-            //q0 <5
+            //q0 <3
+            quantum_sigma_x(q0[0], quReg);
+            quantum_cnot(q0[0], reg1, quReg);
+            quantum_toffoli(q0[2], reg0, reg1, quReg);
+            quantum_toffoli(q0[0], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[0], quReg);
+            break;
+        case 6:
+            //q0 < 2
+            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[1], quReg);
+            quantum_toffoli(q0[0], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_cnot(q0[2], reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_sigma_x(q0[1], quReg);
+            break;
+        case 7:
+            //q0 < 1
             break;
         default:
             break;
@@ -427,6 +434,14 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             quantum_sigma_x(q0[1], quReg);
             quantum_toffoli(q0[0], reg0, reg1, quReg);
             quantum_toffoli(q0[2], q0[1], reg1, quReg);
+            break;
+        case 6:
+            //q0 > 5
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
+            break;
+        case 7:
+            //q0 > 6
+            
             break;
             
     }
@@ -511,6 +526,10 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             quantum_toffoli(q0[2], q0[1], reg0, quReg);
             quantum_sigma_x(q0[1], quReg);
             break;
+        case 6:
+            //q0 > 5
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
+            break;
             
     }
     
@@ -549,18 +568,20 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             quantum_sigma_x(q0[2], quReg);
             break;
         case 5:
-            //q0 <5
+            //q0 <3
+            quantum_sigma_x(q0[0], quReg);
+            quantum_toffoli(q0[0], q0[1], reg0, quReg);
+            quantum_toffoli(q0[2], reg0, reg1, quReg);
+            quantum_cnot(q0[0], reg1, quReg);
+            quantum_sigma_x(q0[0], quReg);
+            break;
+        case 6:
+            //q0 < 2
+            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[1], quReg);
+            quantum_toffoli(q0[0], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_cnot(q0[2], reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_sigma_x(q0[1], quReg);
             break;
         default:
             break;
@@ -621,18 +642,20 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             quantum_sigma_x(q0[2], quReg);
             break;
         case 5:
-            //q0 <5
+            //(q0 > 4)
+            quantum_sigma_x(q0[1], quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[1], quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
+            break;
+        case 6:
+            //q0 < 2
+            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[1], quReg);
+            quantum_toffoli(q0[0], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_cnot(q0[2], reg1, quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_toffoli(q0[1], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[2], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_sigma_x(q0[1], quReg);
             break;
         default:
             break;
@@ -1063,9 +1086,9 @@ int main(int argc, const char * argv[])
             case 4 :
                 order = 34;
                 break;*/
-            case 6:
+            /*case 6:
                 order = 70;
-                break;
+                break;*/
             default :
                 autoMode = 1;
                 order = 100000;
@@ -1084,7 +1107,7 @@ int main(int argc, const char * argv[])
         if (autoMode) {
             intermediate_proba = quantum_prob(quReg.amplitude[0]);
             printf("AutoPass : %d ", i);
-            quantum_max_proba_state(quReg);
+            printQueensFromState(quantum_max_proba_state(quReg));
             if ((proba != 0.0) && (intermediate_proba > proba)){
 
                 break;

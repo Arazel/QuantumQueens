@@ -270,13 +270,13 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
         case 3:
             //q0 < 5
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
             quantum_sigma_x(q0[2], quReg);
+            quantum_cnot(q0[2], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_sigma_x(q0[0], quReg);
             quantum_sigma_x(q0[1], quReg);
             break;
         case 4:
@@ -288,19 +288,19 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             break;
         case 5:
             //q0 <3
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_cnot(q0[2], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 6:
             //q0 < 2
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_toffoli(q0[0], q0[1], reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 7:
             //q0 < 1
@@ -361,11 +361,11 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             quantum_sigma_x(q0[1], quReg);
             quantum_sigma_x(q0[2], quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
+            quantum_cnot(q0[2], reg1, quReg);
             quantum_sigma_x(q0[2], quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[0], quReg);
             quantum_sigma_x(q0[1], quReg);
             break;
         case 4:
@@ -376,19 +376,19 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             break;
         case 5:
             //q0 <3
-            quantum_sigma_x(q0[0], quReg);
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_cnot(q0[2], reg1, quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 6:
             //q0 < 2
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_toffoli(q0[0], q0[1], reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 7:
             //q0 < 1
@@ -423,20 +423,18 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             break;
         case 2:
             //(q0 > 1)
-            quantum_sigma_x(q0[0], quReg);
+            quantum_cnot(q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_toffoli(q0[0], q0[1], reg1, quReg);
-            quantum_sigma_x(reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[0], quReg);
             break;
         case 3:
             //(q0 > 2)
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(reg0, q0[2], reg1, quReg);
-            quantum_cnot(q0[0], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_toffoli(reg0, q0[0], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_cnot(q0[2], reg1, quReg);
             break;
         case 4:
             //(q0 > 3)
@@ -515,20 +513,18 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             break;
         case 2:
             //Inv (q0 > 1)
-            quantum_sigma_x(q0[0], quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(reg1, quReg);
-            quantum_toffoli(q0[0], q0[1], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
+            quantum_cnot(q0[1], reg1, quReg);
             break;
         case 3:
             //Inv (q0 > 2)
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_toffoli(reg0, q0[2], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_cnot(q0[2], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_toffoli(reg0, q0[0], reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 4:
             // Inv (q0 > 3)
@@ -572,13 +568,13 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
         case 3:
             //q0 < 5
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[2], quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
             quantum_sigma_x(q0[0], quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
             quantum_cnot(q0[0], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
             quantum_sigma_x(q0[2], quReg);
+            quantum_sigma_x(q0[0], quReg);
             quantum_sigma_x(q0[1], quReg);
             break;
         case 4:
@@ -589,19 +585,19 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             break;
         case 5:
             //q0 <3
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_cnot(q0[2], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 6:
             //q0 < 2
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_toffoli(q0[0], q0[1], reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 7:
             //q0 < 1
@@ -656,13 +652,13 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
         case 3:
             //q0 < 5
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[2], quReg);
             quantum_sigma_x(q0[0], quReg);
-            quantum_cnot(q0[0], reg1, quReg);
-            quantum_sigma_x(q0[0], quReg);
-            quantum_toffoli(q0[2], reg0, reg1, quReg);
-            quantum_toffoli(q0[0], q0[1], reg0, quReg);
             quantum_sigma_x(q0[2], quReg);
+            quantum_cnot(q0[2], reg1, quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_toffoli(q0[0], reg0, reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[0], quReg);
             quantum_sigma_x(q0[1], quReg);
             break;
         case 4:
@@ -673,19 +669,19 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
             break;
         case 5:
             //(q0 > 4)
-            quantum_sigma_x(q0[1], quReg);
-            quantum_toffoli(q0[2], q0[1], reg0, quReg);
-            quantum_sigma_x(q0[1], quReg);
+            quantum_sigma_x(q0[2], quReg);
+            quantum_cnot(q0[2], reg1, quReg);
             quantum_toffoli(q0[0], reg0, reg1, quReg);
-            quantum_toffoli(q0[2], q0[1], reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg0, quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 6:
             //q0 < 2
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_toffoli(q0[0], q0[1], reg1, quReg);
+            quantum_toffoli(q0[2], q0[1], reg1, quReg);
             quantum_sigma_x(q0[1], quReg);
-            quantum_sigma_x(q0[0], quReg);
+            quantum_sigma_x(q0[2], quReg);
             break;
         case 7:
             //q0 < 1
@@ -1007,6 +1003,34 @@ void Oracle(quantum_reg *quReg)
     
 }
 
+//check constraint for every state
+//oracle function of grover algorithm
+void OracleDebugDiags(quantum_reg *quReg)
+{
+    int reg0 = quRAM;
+    
+    int maxDepth = checkAllDiagonals(reg0, quReg);
+    int reg1 = quRAM+maxDepth+1;
+    int reg2 = quRAM+maxDepth+2;
+    
+    
+    quantum_cnot(reg0, reg2, quReg);
+    checkAllDiagonals(reg0, quReg);
+    
+    if (nb_queens < 8) {
+        CheckLimit(reg0, nb_queens, quReg);
+        quantum_toffoli(reg0, reg2, quControlBit, quReg);
+        CheckLimit(reg0, nb_queens, quReg);
+        
+    } else {
+        quantum_cnot(reg2, quControlBit, quReg);
+    }
+    
+    checkAllDiagonals(reg0, quReg);
+    quantum_cnot(reg0, reg2, quReg);
+    checkAllDiagonals(reg0, quReg);
+    
+}
 
 //invertion function of grover search, amplifies phased state
 void Inversion(quantum_reg *quReg)
@@ -1037,6 +1061,24 @@ void Inversion(quantum_reg *quReg)
     for (int i = 0; i< nb_queens*3; i++)
         quantum_hadamard(i, quReg);
     
+}
+
+
+int checkState(unsigned long long state)
+{
+    int Queens[queenWidth/3] = {state % 8, (state >> 3) % 8, (state >> 6) % 8, (state >> 9) % 8, (state >> 12) % 8, (state >> 15) %8, (state >> 18) %8, (state >> 21) %8};
+    
+    for (int i = 0;i < nb_queens-1; i++) {
+        for (int j = i+1; j<nb_queens; j++) {
+            if (Queens[i] == Queens[j]) {
+                return 0;
+            }
+            if ((Queens[i] == Queens[j] + (j-i)) || (Queens[i] == Queens[j] - (j-i))) {
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 
 //display queens in a chessboard for one particular state
@@ -1077,7 +1119,9 @@ void print_all_max_proba_possibilities(quantum_reg quReg)
         if (proba >= maxProba-0.000000001) {
             printf("\n\nproba = %.15f\n", maxProba);
             printQueensFromState(quReg.state[i]);
-            
+            if (!checkState(quReg.state[i])) {
+                printf("WRONG ANSWER  ******************\n");
+            }
         }
     }
 }
@@ -1100,7 +1144,6 @@ unsigned long long quantum_max_proba_state (quantum_reg quReg) {
     return quReg.state[maxProbaIndex];
 
 }
-
 
 int main(int argc, const char * argv[])
 {

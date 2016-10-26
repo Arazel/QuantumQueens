@@ -1147,6 +1147,12 @@ void print_all_max_proba_possibilities(quantum_reg quReg)
 //get max probablity state from a register
 unsigned long long quantum_max_proba_state (quantum_reg quReg) {
     
+    return quReg.state[quantum_max_proba(quReg)];
+
+}
+
+int quantum_max_proba(quantum_reg quReg)
+{
     double maxProba = 0.0;
     int maxProbaIndex=0;
     for (int index=0; index < quReg.size; index++) {
@@ -1157,11 +1163,10 @@ unsigned long long quantum_max_proba_state (quantum_reg quReg) {
             maxProba = proba;
         }
     }
-    printf("cheating DeltaP = %.15f\n", maxProba);
     
-    return quReg.state[maxProbaIndex];
-
+    return maxProbaIndex;
 }
+
 
 int main(int argc, const char * argv[])
 {
@@ -1209,9 +1214,9 @@ int main(int argc, const char * argv[])
             /*case 5:
                 order = 43;
                 break;*/
-            case 4 :
-                order = 11;
-                break;
+            /*case 4 :
+                order = 34;
+                break;*/
             /*case 6:
                 order = 70;
                 break;*/
@@ -1229,15 +1234,18 @@ int main(int argc, const char * argv[])
         Oracle(&quReg);
         Inversion(&quReg);
         
+
+        printf("Pass : %d  -> Proba = %f\n", i, quantum_prob(quReg.amplitude[quantum_max_proba(quReg)]));
+        
+        
+        
         //if automode, check if noise probability get greater
         if (autoMode) {
-            intermediate_proba = quantum_prob(quReg.amplitude[0]);
-            printf("AutoPass : %d ", i);
-            quantum_max_proba_state(quReg);
-            
-            //print_all_max_proba_possibilities(quReg);
-            if ((proba != 0.0) && (intermediate_proba > proba)){
+            intermediate_proba = quantum_prob(quReg.amplitude[quantum_max_proba(quReg)]);
 
+            //print_all_max_proba_possibilities(quReg);
+            if (intermediate_proba < proba)
+            {
                 break;
             } else {
                 proba = intermediate_proba;

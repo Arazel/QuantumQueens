@@ -30,7 +30,7 @@ const int quControlBit = queenWidth;
 
 const int quRAM = quControlBit+1;
 
-
+//#define QUDEBUG
 
 
 //magic circuit obtained via revkit from a boolean expression
@@ -52,6 +52,9 @@ int QueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantum_r
     int reg6 = OutReg+7;
     int reg7 = OutReg+8;
     
+#ifdef QUDEBUG
+    printf("Compare %d and %d\n", *qu0/3, *qu1/3);
+#endif
     
     //simulate returns only the depth of the stack of this function
     if (simulate)
@@ -153,6 +156,10 @@ int InvQueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantu
     int reg6 = OutReg+7;
     int reg7 = OutReg+8;
     
+#ifdef QUDEBUG
+    printf("InvCompare %d and %d\n", *qu0/3, *qu1/3);
+#endif
+    
     if (simulate)
         return depth+1;
 
@@ -241,7 +248,7 @@ int InvQueenCmp(const int *qu0, const int *qu1, int OutReg, int simulate, quantu
 //quReg : quantum Register for context
 int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int simulate, quantum_reg *quReg)
 {
-    
+
     int depth = 14;
     int reg0 = OutReg+1;
     int reg1 = OutReg+2;
@@ -252,7 +259,12 @@ int QueensAreNotInDiagonal(const int *q0, const int* q1, int OutReg, int n, int 
     if (simulate)
         return depth+1;
 
-
+    
+#ifdef QUDEBUG
+    printf("Queens not in diag %d and %d\n", *q0/3, *q1/3);
+#endif
+    
+    
     switch (n) {
         case 1:
             //(q0 != 7)
@@ -974,8 +986,8 @@ void Oracle(quantum_reg *quReg)
     int reg0 = quRAM;
     
     int maxDepth = checkAllDiagonals(reg0, quReg);
-    int reg1 = quRAM+maxDepth+1;
-    int reg2 = quRAM+maxDepth+2;
+    int reg1 = quRAM+maxDepth+2;
+    int reg2 = quRAM+maxDepth+3;
 
     
     quantum_cnot(reg0, reg1, quReg);
@@ -1020,9 +1032,15 @@ void OracleDebugDiags(quantum_reg *quReg)
     if (nb_queens < 8) {
         CheckLimit(reg0, nb_queens, quReg);
         quantum_toffoli(reg0, reg2, quControlBit, quReg);
+#ifdef QUDEBUG
+        printf("*************************************************************\n");
+#endif
         CheckLimit(reg0, nb_queens, quReg);
         
     } else {
+#ifdef QUDEBUG
+        printf("*************************************************************\n");
+#endif
         quantum_cnot(reg2, quControlBit, quReg);
     }
     
@@ -1116,7 +1134,7 @@ void print_all_max_proba_possibilities(quantum_reg quReg)
     for (int i = 0; i < quReg.size; i++){
         double proba = 0.0;
         proba = quantum_prob(quReg.amplitude[i])*2.0;
-        if (proba >= maxProba-0.000000001) {
+        if (proba >= maxProba-0.0000001) {
             printf("\n\nproba = %.15f\n", maxProba);
             printQueensFromState(quReg.state[i]);
             if (!checkState(quReg.state[i])) {
@@ -1134,12 +1152,12 @@ unsigned long long quantum_max_proba_state (quantum_reg quReg) {
     for (int index=0; index < quReg.size; index++) {
         double proba = 0.0;
         proba = quantum_prob(quReg.amplitude[index])*2.0;
-        if (proba >= maxProba-0.00000000000000001) {
+        if (proba >= maxProba-0.000001) {
             maxProbaIndex = index;
             maxProba = proba;
         }
     }
-    printf("cheating DeltaP = %.15f\n", maxProba - quantum_prob(quReg.amplitude[0]*2.0));
+    printf("cheating DeltaP = %.15f\n", maxProba);
     
     return quReg.state[maxProbaIndex];
 
@@ -1173,7 +1191,7 @@ int main(int argc, const char * argv[])
     quReg = quantum_new_qureg(0, nb_queens*3+1);
     
     //add scratch to visualize debug; remove to increase calculation speed
-    quantum_addscratch(20, &quReg);
+    //quantum_addscratch(20, &quReg);
     
     //superpose queens states
     for (int i = 0; i< nb_queens*3; i++)
@@ -1190,10 +1208,10 @@ int main(int argc, const char * argv[])
         switch (nb_queens) {
             /*case 5:
                 order = 43;
-                break;
-            case 4 :
-                order = 34;
                 break;*/
+            case 4 :
+                order = 11;
+                break;
             /*case 6:
                 order = 70;
                 break;*/
@@ -1207,8 +1225,8 @@ int main(int argc, const char * argv[])
         double proba = 0.0;
     for (int i = 0; i< order; i++) {
         //run grover loop
-        double intermediate_proba;
-        Oracle(&quReg);
+        double intermediate_proba = 0.0;
+        OracleDebugDiags(&quReg);
         Inversion(&quReg);
         
         //if automode, check if noise probability get greater
@@ -1216,6 +1234,8 @@ int main(int argc, const char * argv[])
             intermediate_proba = quantum_prob(quReg.amplitude[0]);
             printf("AutoPass : %d ", i);
             quantum_max_proba_state(quReg);
+            
+            //print_all_max_proba_possibilities(quReg);
             if ((proba != 0.0) && (intermediate_proba > proba)){
 
                 break;
@@ -1238,6 +1258,7 @@ int main(int argc, const char * argv[])
         print_all_max_proba_possibilities(quReg);
     }
     else {
+
         returnVal = quantum_measure(quReg);
         
         //display result

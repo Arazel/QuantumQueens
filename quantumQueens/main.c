@@ -1226,7 +1226,7 @@ int main(int argc, const char * argv[])
     for (int i = 0; i< order; i++) {
         //run grover loop
         double intermediate_proba = 0.0;
-        OracleDebugDiags(&quReg);
+        Oracle(&quReg);
         Inversion(&quReg);
         
         //if automode, check if noise probability get greater

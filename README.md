@@ -1,7 +1,7 @@
 # QuantumQueens
 resolve n free queens on a n chessboard   3 &lt; n &lt; 9
 
-Link against liquantum
+Link against libquantum
 
 xcode project provided
 
